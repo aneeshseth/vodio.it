@@ -13,9 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import AWS from "aws-sdk";
+import random from "random-string-generator";
+
 import { useRouter } from "next/navigation";
 function page() {
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>(random("lower"));
   const [file, setFile] = useState<File | undefined>();
 
   AWS.config.update({
@@ -75,11 +77,7 @@ function page() {
           </CardHeader>
           <CardContent>
             <div className="flex">
-              <Input
-                className="max-w-80 mb-5 mr-5"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Input className="max-w-80 mb-5 mr-5" value={email} />
               <Input
                 type="file"
                 className="mb-5"
