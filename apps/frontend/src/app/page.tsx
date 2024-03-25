@@ -53,8 +53,9 @@ export default function Home() {
               </span>
             </h1>
             <h1 className="md:text-lg text-sm tracking-tight lg:text-lg  lg:ml-20 ml-10 mr-5 mt-5 text-center md:text-left font-normal">
-              used extensively to view videos in 1080p, 720p, etc for{" "}
-              <span className="text-red-500">streaming platforms.</span>
+              construct used extensively to view videos in 1080p, 720p, etc for
+              streaming on{" "}
+              <span className="text-red-500">Netflix, Youtube, etc.</span>
             </h1>
             <div className="flex md:mb-12 mb-8">
               <Button
