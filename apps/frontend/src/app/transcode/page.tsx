@@ -19,13 +19,14 @@ function page() {
   const [logs, setLogs] = useState([]);
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  //http://localhost:3000/transcode?key=1409d0c7-0e3f-4f6c-8c80-e3bb1ae53d46&id=po;efijemd
   const key = searchParams.get("key");
   const currentRef = React.useRef();
   const [loading, setLoading] = useState(true);
   helix.register();
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8080/ws?roomID=${id}`);
+    const ws = new WebSocket(`wss://vodio.aneesh.wiki/ws?roomID=${id}`);
     ws!.onopen = () => {
       ws!.onmessage = (event) => {
         //@ts-ignore
@@ -37,7 +38,7 @@ function page() {
 
   async function startTranscoding() {
     setTimeout(async () => {
-      await axios.post("http://localhost:3005", {
+      await axios.post("https://vodio.aneesh.wiki/runner/transcoding", {
         url: `https://vodio.s3.amazonaws.com/${key}.mp4`,
         email: id,
       });
@@ -71,8 +72,9 @@ function page() {
             </CardTitle>
             <CardDescription className="">
               please <span className="text-red-500">dont refresh</span> the
-              page, or transcoding will restart. if you see the `Qavg` log, you
-              can then access your transcoded videos at
+              page, or transcoding will restart. wait as the aws container
+              starts, usually taking about 1 minute. after transcoding, you can
+              then access your transcoded videos at
               https://vodio.s3.amazonaws.com/
               {key}-<span className="text-green-500">(quality)</span>.mp4
               (qualities = <code> 1080 || 720 || 480 || 360</code>)

@@ -13,19 +13,7 @@ export default function Home() {
     setTimeout(() => {
       setLoading(false);
     }, 600);
-    const ws = new WebSocket(
-      "ws://localhost:8080/ws?roomID=aneeshseth2018@gmail.com"
-    );
-    ws!.onopen = () => {
-      ws!.onmessage = (event) => {
-        console.log(event);
-      };
-    };
-    setWS(ws);
   }, []);
-  async function getuser() {
-    wsocket?.send("sj");
-  }
   return (
     <div className="h-screen w-full dark:bg-black bg-black dark:bg-dot-black/[0.2] bg-dot-white/[0.2] relative flex items-center justify-center">
       <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-black bg-black[mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>

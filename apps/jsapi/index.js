@@ -1,25 +1,27 @@
 const { spawn } = require("child_process");
-const Kafka = require("node-rdkafka");
+const { Kafka } = require("kafkajs");
 const express = require("express");
 const AWS = require("aws-sdk");
 const cors = require("cors");
 const app = express();
+const dotenv = require("dotenv");
+dotenv.config();
 
-const kafkaConf = {
-  "group.id": "mpmypepc-default",
-  "metadata.broker.list": "dory.srvs.cloudkafka.com:9094",
-  "socket.keepalive.enable": true,
-  "security.protocol": "SASL_SSL",
-  "sasl.mechanisms": "SCRAM-SHA-256",
-  "sasl.username": "mpmypepc",
-  "sasl.password": "CpU4icFaStnKJgX1uZCAQcgqHeP5g0RH",
-  debug: "generic,broker,security",
-};
+const kafka = new Kafka({
+  clientId: "my-app",
+  brokers: ["dory.srvs.cloudkafka.com:9094"],
+  ssl: true,
+  sasl: {
+    mechanism: "scram-sha-256",
+    username: "",
+    password: "",
+  },
+});
+
+const producer = kafka.producer();
 
 app.use(express.json());
 app.use(cors());
-const producerStdout = new Kafka.Producer(kafkaConf);
-const producerStderr = new Kafka.Producer(kafkaConf);
 
 AWS.config.update({
   region: "us-east-1",
@@ -34,7 +36,7 @@ const s3 = new AWS.S3({
 
 const fs = require("fs");
 
-async function uploadToS3(url, resolutions, res) {
+async function uploadToS3(url, resolutions) {
   const uploads = resolutions.map(async (resolution) => {
     const { width, height } = resolution;
     const filePath = `output_${width}x${height}.mp4`;
@@ -66,40 +68,12 @@ async function uploadToS3(url, resolutions, res) {
     });
   });
   await Promise.all(uploads);
-  res.sendStatus(200);
+  console.log(`child process exited with code 0`);
 }
 
-app.post("/", (req, res) => {
-  const { email, url } = req.body;
-  console.log(email);
-  console.log(url);
-  const sendMessage = (producer, message) => {
-    producer.produce(
-      "mpmypepc-default",
-      -1,
-      Buffer.from(`${email}::: ${message}`)
-    );
-  };
-
-  const sendLogs = (producer, logs) => {
-    if (logs.length > 0) {
-      const message = logs.shift();
-      sendMessage(producer, message);
-    }
-  };
-
-  let stdoutLogs = [];
-  let stderrLogs = [];
-
-  const sendStdoutLogs = () => {
-    sendLogs(producerStdout, stdoutLogs);
-    setTimeout(sendStdoutLogs, 1500);
-  };
-
-  const sendStderrLogs = () => {
-    sendLogs(producerStderr, stderrLogs);
-    setTimeout(sendStderrLogs, 1500);
-  };
+async function transcodeVideo() {
+  const email = process.env.EMAIL;
+  const url = process.env.URL;
 
   const resolutions = [
     { width: 1920, height: 1080 },
@@ -112,7 +86,7 @@ app.post("/", (req, res) => {
 
   const extractedUUID = url.split(".com/")[1].split(".")[0];
   console.log(extractedUUID);
-  resolutions.forEach(async (resolution, index) => {
+  for (const resolution of resolutions) {
     const { width, height } = resolution;
     const ffmpegProcess = spawn("ffmpeg", [
       "-i",
@@ -132,49 +106,36 @@ app.post("/", (req, res) => {
     ffmpegProcess.stdout.on("data", (data) => {
       const message = data.toString();
       console.log(`${email}::: ${message}`);
-      stdoutLogs.push(message);
+      sendMessage(producer, `${email}::: ${message}`);
     });
 
     ffmpegProcess.stderr.on("data", (data) => {
       const message = data.toString();
       console.error(`${email}::: ${message}`);
-      stderrLogs.push(message);
+      sendMessage(producer, `${email}::: ${message}`);
     });
 
     ffmpegProcess.on("close", async (code) => {
-      console.log(`child process exited with code ${code}`);
       completedProcesses++;
-      if (completedProcesses === resolutions.length) {
-        await uploadToS3(extractedUUID, resolutions, res);
+      console.log(completedProcesses);
+      console.log(completedProcesses == 4);
+      if (completedProcesses === 4) {
+        await uploadToS3(extractedUUID, resolutions);
       }
     });
+  }
+}
+
+const sendMessage = async (producer, message) => {
+  await producer.send({
+    topic: "mpmypepc-default",
+    messages: [{ value: message }],
   });
+};
 
-  producerStdout.on("event.error", function (err) {
-    console.error(err);
-    process.exit(1);
-  });
+const run = async () => {
+  await producer.connect();
+  transcodeVideo();
+};
 
-  producerStderr.on("event.error", function (err) {
-    console.error(err);
-    process.exit(1);
-  });
-
-  producerStdout.on("event.log", function (log) {
-    console.log(log);
-  });
-
-  producerStderr.on("event.log", function (log) {
-    console.log(log);
-  });
-
-  producerStdout.connect();
-  producerStderr.connect();
-
-  sendStdoutLogs();
-  sendStderrLogs();
-});
-
-app.listen(3005, () => {
-  console.log("listening on port 3005.");
-});
+run().catch(console.error);

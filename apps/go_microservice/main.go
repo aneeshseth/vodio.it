@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"math/rand/v2"
 	"net/http"
 	"os"
-	"sync"
 	"strings"
+	"sync"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -101,10 +103,8 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	transcoding_jobs := make(chan TranscodingJob)
-	subtitle_jobs := make(chan SubtitleJob)
 	go consumeKafkaMessages()
-	setupRoutes(transcoding_jobs, subtitle_jobs, transcoding_jobs, subtitle_jobs)
+	setupRoutes()
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -165,126 +165,81 @@ func consumeKafkaMessages() {
 }
 
 
-
-
-
-
 func slashRoute(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin","*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
 
+type RequestBody struct {
+    url   string `json:"url"`
+   	email string `json:"email"`
+}
 
-
-func setupRoutes(transcoding_jobs chan<- TranscodingJob, subtitle_jobs chan<- SubtitleJob, transcoding_listener <-chan TranscodingJob, subtitle_listener <-chan SubtitleJob) {
+func setupRoutes() {
 	http.HandleFunc("/", wsEndpoint)
 	http.HandleFunc("/test", slashRoute)
-	http.HandleFunc("/runner/subtitles", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin","*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		s3 := rand.NewPCG(42, 1024)
-		r3 := rand.New(s3)
-		id := r3.IntN(100)
-
-
-		_, err := config.LoadDefaultConfig(context.TODO())
-		if err != nil {
-			log.Fatal(err)
-		}
-		client := ecs.New(ecs.Options{
-			Region:      "us-west-2",
-			Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider("", "", "")),
-		})
-			params := &ecs.RunTaskInput{
-				Cluster: aws.String(""),
-				TaskDefinition: aws.String(""),
-				LaunchType: "",
-				Count: aws.Int32(1),
-				NetworkConfiguration: &types.NetworkConfiguration{
-					AwsvpcConfiguration: &types.AwsVpcConfiguration{
-						Subnets: []string{""},
-						AssignPublicIp: "",
-						SecurityGroups: []string{""},
-					},
-				},
-				Overrides: &types.TaskOverride{
-					ContainerOverrides: []types.ContainerOverride{
-						{
-							Command: []string{""},
-							Environment: []types.KeyValuePair{
-								{
-									Name: aws.String(""),
-									Value: aws.String(""),
-								},
-							},
-						},
-					},
-				},
-			}	
-			client.RunTask(context.TODO(), params)
-			subtitle_jobs <- SubtitleJob{id, "subtitle"}
-			go func() {
-				for job := range subtitle_listener {
-					fmt.Printf("Subtitle job completed: %+v\n", job)
-				}
-			}()
-	})
 	http.HandleFunc("/runner/transcoding", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin","*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if (req.Method == "POST") {
+			body, _ := ioutil.ReadAll(req.Body)
+			type Data struct {
+				URL   string `json:"url"`
+				Email string `json:"email"`
+			}
+			var data Data
+			err := json.Unmarshal([]byte(string(body)), &data)
+			if err != nil {
+				fmt.Println("Error parsing JSON:", err)
+				return
+			}
+			_, err = config.LoadDefaultConfig(context.TODO())
+			if err != nil {
+				log.Fatal(err)
+			}
+			client := ecs.New(ecs.Options{
+				Region:      "us-east-1",
+				Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider("", "", "")),
+			})
 
-		s3 := rand.NewPCG(42, 1024)
-		r3 := rand.New(s3)
-		id := r3.IntN(100)
-		
-
-		_, err := config.LoadDefaultConfig(context.TODO())
-		if err != nil {
-			log.Fatal(err)
-		}
-		client := ecs.New(ecs.Options{
-			Region:      "us-west-2",
-			Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider("", "", "")),
-		})
 			params := &ecs.RunTaskInput{
-				Cluster: aws.String(""),
-				TaskDefinition: aws.String(""),
-				LaunchType: "",
-				Count: aws.Int32(1),
-				NetworkConfiguration: &types.NetworkConfiguration{
-					AwsvpcConfiguration: &types.AwsVpcConfiguration{
-						Subnets: []string{""},
-						AssignPublicIp: "",
-						SecurityGroups: []string{""},
+					Cluster: aws.String("arn:aws:ecs:us-east-1:208806971401:cluster/vodio-cluster"),
+					TaskDefinition: aws.String("arn:aws:ecs:us-east-1:208806971401:task-definition/vodio-transcode:1"),
+					LaunchType: "FARGATE",
+					Count: aws.Int32(1),
+					NetworkConfiguration: &types.NetworkConfiguration{
+						AwsvpcConfiguration: &types.AwsVpcConfiguration{
+							Subnets: []string{"subnet-0dc852e023d6f0991", "subnet-0c61ae33d6c7a7e5a", "subnet-0baa870e232827ca4", "subnet-0b2b86eb36fa33e78", "subnet-087fdee6f2b4fabe4", "subnet-06ce439b118d38860"},
+							SecurityGroups: []string{"sg-0af6b3453c5fe35c8"},
+							AssignPublicIp: "ENABLED",
+						},
 					},
-				},
-				Overrides: &types.TaskOverride{
-					ContainerOverrides: []types.ContainerOverride{
-						{
-							Command: []string{""},
-							Environment: []types.KeyValuePair{
-								{
-									Name: aws.String(""),
-									Value: aws.String(""),
+					Overrides: &types.TaskOverride{
+						ContainerOverrides: []types.ContainerOverride{
+							{
+								Environment: []types.KeyValuePair{
+									{
+										Name: aws.String("URL"),
+										Value: aws.String(data.URL),
+									},
+									{
+										Name: aws.String("EMAIL"),
+										Value: aws.String(data.Email),
+									},
 								},
+								Name: aws.String("vodio-task"),
 							},
 						},
 					},
-				},
-			}	
-			client.RunTask(context.TODO(), params)
-			transcoding_jobs <- TranscodingJob{id, "transcoding"}
-			go func() {
-				for job := range transcoding_listener {
-					
-					fmt.Printf("Transcoding job completed: %+v\n", job)
-				}
-			}()
+				}	
+				fmt.Println(params)
+				b, err := client.RunTask(context.TODO(), params)
+				fmt.Println(b)
+				fmt.Println(err)
+				w.WriteHeader(http.StatusOK)
+		}
 	})
-	
 }
 

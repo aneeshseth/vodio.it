@@ -51,7 +51,9 @@ function page() {
   }
 
   async function startTranscoding() {
-    if (email == "") return;
+    if (email === "" || !/^[a-zA-Z]+$/.test(email)) {
+      alert("please enter only letters with no spaces.");
+    }
     const keyToSend = uuidv4();
     await uploadFile(keyToSend.toString(), "transcode");
   }
@@ -67,7 +69,8 @@ function page() {
           <CardHeader>
             <CardTitle className="mb-2">start generation:</CardTitle>
             <CardDescription className="">
-              please enter email and select a video from below to transcode.
+              please enter a random string for yourself and select a video from
+              below to transcode.
             </CardDescription>
           </CardHeader>
           <CardContent>
