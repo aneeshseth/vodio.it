@@ -234,7 +234,6 @@ func setupRoutes() {
 						},
 					},
 				}	
-				fmt.Println(params)
 				b, err := client.RunTask(context.TODO(), params)
 				fmt.Println(b)
 				fmt.Println(err)
