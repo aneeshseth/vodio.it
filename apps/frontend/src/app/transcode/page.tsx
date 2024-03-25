@@ -59,13 +59,6 @@ export default function page() {
   }, [logs]);
   return (
     <div className="flex w-screen md:flex-row flex-col">
-      {loading ? (
-        <div className="absolute top-14 right-8 md:right-10">
-          <div>loading...</div>
-        </div>
-      ) : (
-        <div />
-      )}
       <div className="md:w-full h-screen w-full mt-10 md:ml-5 mr-5 p-3 flex">
         <Card className="w-full h-full  bg-black">
           <CardHeader>
