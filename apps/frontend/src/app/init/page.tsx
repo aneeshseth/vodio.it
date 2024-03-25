@@ -17,7 +17,16 @@ import random from "random-string-generator";
 
 import { useRouter } from "next/navigation";
 function page() {
-  const [email, setEmail] = useState<string>(random("lower"));
+  function generateRandomString(length) {
+    var result = "";
+    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+  const [email, setEmail] = useState<string>(generateRandomString(8));
   const [file, setFile] = useState<File | undefined>();
 
   AWS.config.update({
