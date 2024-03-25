@@ -60,8 +60,8 @@ export default function page() {
   return (
     <div className="flex w-screen md:flex-row flex-col">
       {loading ? (
-        <div className="absolute top-14 right-6 md:right-10">
-          <div>loading</div>
+        <div className="absolute top-14 right-8 md:right-10">
+          <div>loading...</div>
         </div>
       ) : (
         <div />
@@ -87,7 +87,7 @@ export default function page() {
           <CardContent>
             <div className="w-full h-full p-5 overflow-auto rounded-xl bg-zinc-900 max-h-[500px]">
               <div className="mb-5">
-                <div>loading.</div>
+                <div>loading...</div>
               </div>
               {logs.map((log, index) => (
                 //@ts-ignore
