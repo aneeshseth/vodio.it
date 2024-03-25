@@ -79,8 +79,7 @@ function page() {
           <CardHeader>
             <CardTitle className="mb-2">start generation:</CardTitle>
             <CardDescription className="">
-              please enter a random string for yourself and select a video from
-              below to transcode.
+              select a video from below to transcode.
             </CardDescription>
           </CardHeader>
           <CardContent>
