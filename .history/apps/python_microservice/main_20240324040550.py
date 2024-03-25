@@ -19,8 +19,8 @@ def process_and_send():
         'default.topic.config': {'auto.offset.reset': 'smallest'},
         'security.protocol': 'SASL_SSL',
         'sasl.mechanisms': 'SCRAM-SHA-256',
-        'sasl.username': "",
-        'sasl.password': ""
+        'sasl.username': "mpmypepc",
+        'sasl.password': "CpU4icFaStnKJgX1uZCAQcgqHeP5g0RH"
     }
     p = Producer(**conf)
     def delivery_callback(err, msg):
