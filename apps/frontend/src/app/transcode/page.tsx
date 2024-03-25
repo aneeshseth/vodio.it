@@ -10,22 +10,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useEffect, useState } from "react";
-import { helix } from "ldrs";
 import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 
-function page() {
+export default function page() {
   const [logs, setLogs] = useState([]);
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id");
-  //http://localhost:3000/transcode?key=1409d0c7-0e3f-4f6c-8c80-e3bb1ae53d46&id=po;efijemd
-  const key = searchParams.get("key");
+  let queryParams: URLSearchParams;
+  if (typeof window !== "undefined") {
+    queryParams = new URLSearchParams(useSearchParams().toString());
+  }
   const currentRef = React.useRef();
   const [loading, setLoading] = useState(true);
-  helix.register();
-
+  var key;
   useEffect(() => {
+    const id = queryParams.get("id");
+    key = queryParams.get("key");
+    console.log(id);
+    console.log(key);
     const ws = new WebSocket(`wss://vodio.aneesh.wiki/ws?roomID=${id}`);
     ws!.onopen = () => {
       ws!.onmessage = (event) => {
@@ -37,6 +39,8 @@ function page() {
   }, []);
 
   async function startTranscoding() {
+    const id = queryParams.get("id");
+    const key = queryParams.get("key");
     setTimeout(async () => {
       await axios.post("https://vodio.aneesh.wiki/runner/transcoding", {
         url: `https://vodio.s3.amazonaws.com/${key}.mp4`,
@@ -57,7 +61,7 @@ function page() {
     <div className="flex w-screen md:flex-row flex-col">
       {loading ? (
         <div className="absolute top-14 right-6 md:right-10">
-          <l-helix size="40" speed="5" color="blue"></l-helix>
+          <div>loading</div>
         </div>
       ) : (
         <div />
@@ -83,7 +87,7 @@ function page() {
           <CardContent>
             <div className="w-full h-full p-5 overflow-auto rounded-xl bg-zinc-900 max-h-[500px]">
               <div className="mb-5">
-                <l-helix size="40" speed="5" color="blue"></l-helix>
+                <div>loading.</div>
               </div>
               {logs.map((log, index) => (
                 //@ts-ignore
@@ -105,5 +109,3 @@ function page() {
     </div>
   );
 }
-
-export default page;
