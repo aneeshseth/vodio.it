@@ -1,81 +1,34 @@
-# Turborepo starter
+# vodio.it - **transcode videos, with real-time logs.**
 
-This is an official starter Turborepo.
+<img width="1355" alt="image" src="https://res.cloudinary.com/dysiv1c2j/image/upload/v1711254672/Screen_Shot_2024-03-23_at_9.30.03_PM_wkiovx.png">
 
-## Using this example
+# Problem Statement:
 
-Run the following command:
+The problem statement is simple. I want to be able to transcode videos into different video qualities (1080p, 720p, 360p) etc, and also generate logs for them in real-time which can be displayed to the user.
 
-```sh
-npx create-turbo@latest
-```
+<img width="1355" alt="image" src="https://res.cloudinary.com/dysiv1c2j/image/upload/v1711236853/Screen_Shot_2024-03-23_at_4.32.58_PM_i2i7ys.png">
 
-## What's inside?
+The application is built with 3 primary services: a golang service which handles requests to transcode/transcribe a video, a javascript service which runs on an ECS container triggered by the golang service to transcode videos, and a python service to use whisper ai to transcribe videos.
 
-This Turborepo includes the following packages/apps:
+# The Golang microservice:
 
-### Apps and Packages
+This service is primarily responsible to run a predefined AWS ECS task on AWS. The task internally runs a Docker image which downloads the necessary dependencies, and enters a Javascript file which transcodes the video, and uploads the video to the designated bucket. For transcribing, the service runs a predefined AWS ECS task on AWS which this time enters a python file, which transcribes the video using whisper ai.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+# Real Time logs:
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+A very important part of this application is the generation of logs in real time when the video is transcoding. For this, Apache Kafka to stream data from the javascript service running inside an ECS task to the golang service. The Golang service that recieves the data from Kafka, and via a WebSocket connection created, is sent back to the designated client through some in-program logic.
 
-### Utilities
+<img width="1355" alt="image" src="https://res.cloudinary.com/dysiv1c2j/image/upload/v1711275798/Screen_Shot_2024-03-24_at_3.23.00_AM_fiaqpt.png">
+<img width="1355" alt="image" src="https://res.cloudinary.com/dysiv1c2j/image/upload/v1711254672/Screen_Shot_2024-03-23_at_9.30.03_PM_wkiovx.png">
 
-This Turborepo has some additional tools already setup for you:
+# Tech Stack:
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+- Docker
+- AWS
+- Golang
+- Python
+- Typescript
+- Javascript
+- Next.js 13
+- Tailwind CSS
+- ShadCN/ui
