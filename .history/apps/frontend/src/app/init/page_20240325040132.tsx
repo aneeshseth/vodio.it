@@ -20,8 +20,8 @@ function page() {
 
   AWS.config.update({
     region: "us-east-1",
-    accessKeyId: process.env.NEXT_PUBLIC_ACCESS_ID!,
-    secretAccessKey: process.env.NEXT_PUBLIC_SECRET_KEY!,
+    accessKeyId: process.env.ACCESS_ID!,
+    secretAccessKey: process.env.SECRET_KEY!,
   });
 
   const s3 = new AWS.S3({
