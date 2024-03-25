@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import AWS from "aws-sdk";
-import random from "random-string-generator";
 
 import { useRouter } from "next/navigation";
 function page() {
