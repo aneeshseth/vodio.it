@@ -16,7 +16,7 @@ import AWS from "aws-sdk";
 
 import { useRouter } from "next/navigation";
 function page() {
-  function generateRandomString(length) {
+  function generateRandomString(length: number) {
     var result = "";
     var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     var charactersLength = characters.length;
