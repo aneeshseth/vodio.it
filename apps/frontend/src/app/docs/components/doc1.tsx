@@ -15,14 +15,17 @@ export default function Component() {
         />
       </div>
       <hr className="border-gray-700 mb-6" />
-
+      <h1 className="text-2xl font-bold mb-4">Tech Stack:</h1>
+      <p className="mb-5">
+        Docker, AWS, Golang, Python, Typescript, Javascript, Next.js 13,
+        Tailwind CSS, ShadCN/ui
+      </p>
       <h1 className="text-2xl font-bold mb-4">Problem Statement:</h1>
       <p className="mb-3 text-md">
         The problem statement is simple. I want to be able to transcode videos
         into different video qualities (1080p, 720p, 360p) etc, and also
         generate logs for them in real-time which can be displayed to the user.
       </p>
-      <p className="mb-6">The final codebase UI looks something like this:</p>
       <div className="flex justify-center mt-10 flex-col mb-10">
         <img
           src="https://res.cloudinary.com/dysiv1c2j/image/upload/v1711236853/Screen_Shot_2024-03-23_at_4.32.58_PM_i2i7ys.png"
