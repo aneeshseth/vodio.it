@@ -28,11 +28,22 @@ export default function page() {
     key = queryParams.get("key");
     console.log(id);
     console.log(key);
+    const ws = new WebSocket(`wss://vodio.aneesh.wiki?roomID=${id}`);
+    ws.onopen = () => {
+      ws.onmessage = (event) => {
+        //@ts-ignore
+        setLogs((prevLogs) => [...prevLogs, event.data]);
+      };
+    };
   }, []);
 
   async function startTranscoding() {
     const id = queryParams.get("id");
     const key = queryParams.get("key");
+    await axios.post("https://vodio.aneesh.wiki/runner/transcoding", {
+      url: `https://vodio.s3.amazonaws.com/${key}.mp4`,
+      email: id,
+    });
   }
   useEffect(() => {
     startTranscoding();
