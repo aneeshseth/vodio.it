@@ -67,8 +67,8 @@ export default function page() {
             <CardDescription className="">
               please <span className="text-red-500">dont refresh</span> the
               page, or transcoding will restart. wait as the aws container
-              starts, usually taking about 1 minute. after transcoding, you can
-              then access your transcoded videos at
+              starts, usually taking about 1-2 minutes. after transcoding, you
+              can then access your transcoded videos at
               https://vodio.s3.amazonaws.com/
               {key}-<span className="text-green-500">(quality)</span>.mp4
               (qualities = <code> 1080 || 720 || 480 || 360</code>)
