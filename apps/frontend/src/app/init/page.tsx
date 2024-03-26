@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-
 import { Button } from "@/components/ui/button";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -13,9 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import AWS from "aws-sdk";
-
 import { useRouter } from "next/navigation";
-function page() {
+
+function Page() {
   function generateRandomString(length: number) {
     var result = "";
     var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -25,8 +24,10 @@ function page() {
     }
     return result;
   }
+
   const [email, setEmail] = useState<string>(generateRandomString(8));
   const [file, setFile] = useState<File | undefined>();
+  const [loading, setLoading] = useState<boolean>(false); // State for loading indicator
 
   AWS.config.update({
     region: "us-east-1",
@@ -39,14 +40,16 @@ function page() {
     params: { Bucket: "vodio" },
   });
   const router = useRouter();
+
   async function uploadFile(keyToSend: string, type: string) {
-    //if (file?.type != "video/mp4") return;
+    setLoading(true); // Set loading to true when starting upload
     const params = {
       Key: `${keyToSend}.mp4`,
       Body: file,
       Bucket: "vodio",
     };
     await s3.upload(params, (err: any, data: any) => {
+      setLoading(false); // Set loading to false when upload completes
       if (err) {
         console.error("Error uploading file:", err);
       } else {
@@ -63,15 +66,21 @@ function page() {
   async function startTranscoding() {
     if (email === "" || !/^[a-zA-Z]+$/.test(email)) {
       alert("please enter only letters with no spaces.");
+      return;
     }
     const keyToSend = uuidv4();
     await uploadFile(keyToSend.toString(), "transcode");
   }
+
   async function startSubtitles() {
-    if (email == "") return;
+    if (email === "" || !/^[a-zA-Z]+$/.test(email)) {
+      alert("please enter only letters with no spaces.");
+      return;
+    }
     const keyToSend = uuidv4();
     await uploadFile(keyToSend.toString(), "subtitle");
   }
+
   return (
     <div className="">
       <div className="h-screen w-full mt-10 md:ml-5 mr-5 flex justify-center items-center">
@@ -95,8 +104,9 @@ function page() {
               variant={"outline"}
               className="mr-5"
               onClick={startTranscoding}
+              disabled={loading}
             >
-              transcode
+              {loading ? "Uploading..." : "Transcode"}
             </Button>
           </CardContent>
         </Card>
@@ -105,4 +115,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;
