@@ -74,7 +74,7 @@ export default function Home() {
                   router.push("/init");
                 }}
               >
-                start
+                demo
               </Button>
             </div>
           </div>
