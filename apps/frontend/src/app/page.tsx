@@ -20,10 +20,6 @@ export default function Home() {
       <div className="antialiased">
         <div className="absolute top-6 left-6 flex items-center">
           <div>
-            <img
-              src="https://images.creativefabrica.com/products/thumbnails/2023/10/02/W250ULxXK/2WCzsEQAfHvSEGnOE8c4qIySZ41.png"
-              className="w-18 h-16 lg:w-18 lg:h-18 rounded-full"
-            />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight lg:text-4xl ml-5">
             vodio.it
